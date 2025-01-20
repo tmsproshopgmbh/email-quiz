@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Mail Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .quiz-container {
+            background: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 600px;
+            text-align: center;
+        }
+        .question {
+            font-size: 18px;
+            margin: 20px 0;
+        }
+        .email {
+            background: #f9f9f9;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: left;
+        }
+        .options button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            margin: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .options button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            font-size: 20px;
+            margin: 20px 0;
+        }
+        .restart {
+            display: none;
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .restart:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <h1>E-Mail Quiz</h1>
+        <div id="question-container">
+            <p class="question" id="question"></p>
+            <div class="email" id="email"></div>
+            <div class="options">
+                <button onclick="checkAnswer(true)">Ja</button>
+                <button onclick="checkAnswer(false)">Nein</button>
+            </div>
+        </div>
+        <div class="result" id="result"></div>
+        <button class="restart" id="restart" onclick="restartQuiz()">Nochmal spielen</button>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: "Ist diese E-Mail authentisch?",
+                email: "<b>Betreff:</b> Wichtige Mitteilung von Ihrer Bank<br><b>Absender:</b> service@banksecure-update.com<br><b>Text:</b> Aufgrund von Sicherheitsproblemen bitten wir Sie, Ihre Daten zu aktualisieren. <a href='#'>Hier klicken</a>.",
+                isAuthentic: false
+            },
+            {
+                question: "Ist diese E-Mail authentisch?",
+                email: "<b>Betreff:</b> Team-Meeting um 14:00 Uhr<br><b>Absender:</b> kollege.michael@firma.de<br><b>Text:</b> Hi Team, kurze Erinnerung: Unser Meeting startet um 14:00 Uhr im Raum Alpha.",
+                isAuthentic: true
+            },
+            {
+                question: "Ist diese E-Mail authentisch?",
+                email: "<b>Betreff:</b> Ihr Paket konnte nicht zugestellt werden<br><b>Absender:</b> dhl-support@fake-mail.com<br><b>Text:</b> Bitte klicken Sie hier, um Ihre Adresse zu bestätigen.",
+                isAuthentic: false
+            },
+            {
+                question: "Ist diese E-Mail authentisch?",
+                email: "<b>Betreff:</b> Rechnung für Ihren Einkauf<br><b>Absender:</b> noreply@onlineshop.com<br><b>Text:</b> Ihre Rechnung für den Einkauf: #12345. Vielen Dank!",
+                isAuthentic: true
+            },
+            {
+                question: "Ist diese E-Mail authentisch?",
+                email: "<b>Betreff:</b> Konto gesperrt<br><b>Absender:</b> support@paypal-security.com<br><b>Text:</b> Ihr Konto wurde gesperrt. <a href='#'>Hier klicken</a> zur Reaktivierung.",
+                isAuthentic: false
+            },
+            {
+                question: "Ist diese E-Mail authentisch?",
+                email: "<b>Betreff:</b> Glückwunsch, Sie haben gewonnen!<br><b>Absender:</b> lottery@bigwin.com<br><b>Text:</b> Fordern Sie Ihren Preis an, indem Sie hier klicken!",
+                isAuthentic: false
+            },
+            {
+                question: "Ist diese E-Mail authentisch?",
+                email: "<b>Betreff:</b> HR Update<br><b>Absender:</b> hr@firma.de<br><b>Text:</b> Bitte senden Sie uns eine Kopie Ihrer letzten Gehaltsabrechnung.",
+                isAuthentic: false
+            },
+            {
+                question: "Ist diese E-Mail authentisch?",
+                email: "<b>Betreff:</b> Passwortänderung<br><b>Absender:</b> noreply@secure-firma.com<br><b>Text:</b> Sie haben eine Passwortänderung beantragt.",
+                isAuthentic: true
+            },
+            {
+                question: "Ist diese E-Mail authentisch?",
+                email: "<b>Betreff:</b> Jahresendgeschenk<br><b>Absender:</b> ceo@firma.de<br><b>Text:</b> Bitte kaufen Sie 10 Gutscheinkarten für unsere Top-Kunden und senden Sie mir die Codes zurück.",
+                isAuthentic: false
+            },
+            {
+                question: "Ist diese E-Mail authentisch?",
+                email: "<b>Betreff:</b> Sicherheitsupdate<br><b>Absender:</b> it-support@firma.de<br><b>Text:</b> Bitte installieren Sie das neue Sicherheitsupdate.",
+                isAuthentic: true
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+
+        function loadQuestion() {
+            if (currentQuestion < questions.length) {
+                document.getElementById('question').innerText = questions[currentQuestion].question;
+                document.getElementById('email').innerHTML = questions[currentQuestion].email;
+                document.getElementById('result').innerText = '';
+            } else {
+                document.getElementById('question-container').style.display = 'none';
+                document.getElementById('result').innerText = `Spiel beendet! Ihre Punktzahl: ${score} von ${questions.length}`;
+                document.getElementById('restart').style.display = 'block';
+            }
+        }
+
+        function checkAnswer(answer) {
+            if (answer === questions[currentQuestion].isAuthentic) {
+                score++;
+                document.getElementById('result').innerText = 'Richtig!';
+            } else {
+                document.getElementById('result').innerText = 'Falsch!';
+            }
+            currentQuestion++;
+            setTimeout(loadQuestion, 1000);
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            document.getElementById('question-container').style.display = 'block';
+            document.getElementById('restart').style.display = 'none';
+            loadQuestion();
+        }
+
+        loadQuestion();
+    </script>
+</body>
+</html>
